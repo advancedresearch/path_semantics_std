@@ -3,6 +3,43 @@ A Rust type checked implementation of the standard dictionary of path semantics 
 
 *Notice! This library is in early stage of development and might contain bugs and missing features!*
 
+### Example: Proving addition of even numbers
+
+```rust
+// Prove `add[even] <=> eq`, which is equal to
+// `even(add(a, b)) = eq(even(a), even(b))`.
+let add: Add<u32> = Add::default();
+let even: Even<u32> = Even::default();
+let path: Eq<bool> = add.path(even);
+```
+
+The Rust type checker proves equivalence of existential paths when calling `.path`.  
+It is based on a neat theory of path semantics called "constrained functions".  
+All you need to do is expressing the theorem directly in Rust code!
+
+The example above can be shortened down to a single line:
+
+```rust
+let path: Eq<bool> = Add::<u32>::default().path(Even::default());
+```
+
+To change the constrains, use the `.i` method (using variable names for readability):
+
+```rust
+let path: Eq<bool, (Id<bool>, Not)> = add.i((even, odd)).path(even);
+```
+
+This changes the `add` function into a partial function,
+and it propagates the constraint such that you can see the constraint on the predictor function.
+
+The `.ex_path` method returns an output function:
+
+```rust
+let res: Not = add.i((even, odd)).path(even).ex_path();
+```
+
+In this case we proved that if you add an even number and an odd number, you don't get an even number!
+
 ### What is path semantics?
 
 A brief introduction is given here, since most people do not know what it is.  
