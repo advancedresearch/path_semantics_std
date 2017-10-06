@@ -5,7 +5,7 @@
 //!
 //! ### Example: Proving addition of even numbers
 //!
-//! ```rust
+//! ```ignore
 //! // Prove `add[even] <=> eq`, which is equal to
 //! // `even(add(a, b)) = eq(even(a), even(b))`.
 //! let add: Add<u32> = Add::default();
@@ -19,13 +19,13 @@
 //!
 //! The example above can be shortened down to a single line:
 //!
-//! ```rust
+//! ```ignore
 //! let path: Eq<bool> = Add::<u32>::default().path(Even::default());
 //! ```
 //!
 //! To change the constrains, use the `.i` method (using variable names for readability):
 //!
-//! ```rust
+//! ```ignore
 //! let path: Eq<bool, (Id<bool>, Not)> = add.i((even, odd)).path(even);
 //! ```
 //!
@@ -34,7 +34,7 @@
 //!
 //! The `.ex_path` method returns an output function:
 //!
-//! ```rust
+//! ```ignore
 //! let res: Not = add.i((even, odd)).path(even).ex_path();
 //! ```
 //!
