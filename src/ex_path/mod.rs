@@ -1,5 +1,6 @@
 use *;
 
+/// Existential path of constrained function.
 pub trait ExPath {
     type Lift;
 

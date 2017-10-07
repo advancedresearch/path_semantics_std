@@ -98,10 +98,12 @@
 use std::marker::PhantomData;
 
 pub use constrain::*;
+pub use tri_path::*;
 pub use ex_path::*;
 pub use path::*;
 
 mod constrain;
+mod tri_path;
 mod ex_path;
 mod path;
 mod display;
