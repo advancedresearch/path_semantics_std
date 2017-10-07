@@ -6,14 +6,46 @@ pub trait Path<T> {
     fn path_force(&self, arg: T) -> <Self as Path<T>>::Lift;
 
     /// Can call method if the existential paths of constrained input matches.
+    /// Performs a runtime check that captured variables are equal.
     fn path(&self, arg: T) -> <Self as Path<T>>::Lift
-        where <Self as Path<T>>::Lift: ExPath<
-                    Lift = <<T as Constrain<<Self as ExPath>::Lift>>::Lift as ExPath>::Lift>,
-              T: Constrain<<Self as ExPath>::Lift>,
-              <T as Constrain<<Self as ExPath>::Lift>>::Lift: ExPath,
-              Self: ExPath
+        where
+            // `∀f`
+            Self: TriPath,
+            // `∃f{∀f}`
+            Self: ExPath,
+            // `g{∀f}`
+            T: Constrain<<Self as TriPath>::Lift>,
+            // `∃g{∀f}`
+            <T as Constrain<<Self as TriPath>::Lift>>::Lift: ExPath,
+            // `g{∃f{∀f}}`
+            T: Constrain<<Self as ExPath>::Lift>,
+            // `∃g{∃f{∀f}}`
+            <T as Constrain<<Self as ExPath>::Lift>>::Lift: ExPath,
+            // `f[g]{∃g{∀f}}`,
+            <Self as Path<T>>::Lift: Constrain<<<T as Constrain<<Self as TriPath>::Lift>>::Lift as ExPath>::Lift>,
+            // `∃f[g]{∃g{∀f}} <=> ∃g{∃f{∀f}}`
+            <<Self as Path<T>>::Lift as Constrain<<<T as Constrain<<Self as TriPath>::Lift>>::Lift as ExPath>::Lift>
+            >::Lift: ExPath<
+                Lift = <<T as Constrain<<Self as ExPath>::Lift>>::Lift as ExPath>::Lift
+            >,
+            // Required for runtime check of captured variables.
+            T: Clone,
+            <<T as Constrain<<Self as ExPath>::Lift>>::Lift as ExPath>::Lift: std::fmt::Debug + PartialEq,
     {
-        self.path_force(arg)
+        use std::mem::transmute;
+
+        // Check equality of captured variables.
+        // Unsafe code is needed because the compiler is not able infer
+        // that `a` and `b` are of the same type.
+        let fg: <Self as Path<T>>::Lift = self.path_force(arg.clone());
+        let a = unsafe {
+            transmute::<&_, &<<T as Constrain<<Self as ExPath>::Lift>>::Lift as ExPath>::Lift>(
+                &fg.i(arg.i(self.tri_path()).ex_path())
+            )
+        };
+        let b = &arg.i(self.ex_path()).ex_path();
+        assert_eq!(a, b);
+        fg
     }
 }
 
